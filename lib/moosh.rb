@@ -340,10 +340,7 @@ class Moosh
 		exportformat = ExportFormat::TXT
 
 		# Only gradeitems with the specified course_id are extracted.
-		gradeitems_all = gradeitem_list()
-		gradeitems = gradeitems_all.select {|x|
-			x["courseid"] == course_id.to_s
-		}
+		gradeitems = gradeitem_list(course_id)
 		if gradeitems.length < 1 then
 			# In some cases, there is no gradeitem in a course, so it is treadted as normal.
 			STDERR.puts "gradeitems is empty. Probably there is no gradeitem in the course #{course_id}."
@@ -353,7 +350,7 @@ class Moosh
 		gradeitem_ids = gradeitems.map {|item| item["id"] }
 		
 		
-		command_line = "#{@command_line_base} gradebook-export -g #{group_id} -x #{exportfeedback} -a #{onlyactive} -d #{displaytype} -p #{decimalpoints} -s #{separator} -f #{exportformat} #{gradeitem_ids} #{course_id}"
+		command_line = "#{@command_line_base} gradebook-export -g #{group_id} -x #{exportfeedback} -a #{onlyactive} -d #{displaytype} -p #{decimalpoints} -s #{separator} -f #{exportformat} #{gradeitem_ids.join(',')} #{course_id}"
 
 		puts command_line
 	end
@@ -370,16 +367,34 @@ class Moosh
 		raise NotImplementedError.new("You must implement #{self.class}##{__method__}")
 	end
 
-    def gradeitem_list()
+    def gradeitem_list(course_id=nil)
+		if !course_id.nil? && !course_id.is_a?(Integer) then
+			raise "Invalid course_id #{course_id}."
+		end
+	
 		command_line = "#{@command_line_base} gradeitem-list"
 		puts command_line
 
-		output, error, status = Open3.capture3(command_line)
+		_stdout, error, status = Open3.capture3(command_line)
+		# Find header row marker in stdout.
+		header_row_index = _stdout.index(/"id",/)
+		
+		output = _stdout[header_row_index, _stdout.length-1]
 		csvdata = []
 		CSV(output,headers: true).each do |row|
 			csvdata << row
 		end
-		return csvdata
+
+		if course_id.nil? then
+			# Return all data if course_id method parameter does not specified.
+			return csvdata
+		else
+			# Extract the data by course_id.
+			csvdata_id = csvdata.select {|x|
+				x["courseid"] == course_id.to_s
+			}
+			return csvdata_id
+		end
 	end
 
     def group_assigngrouping()
