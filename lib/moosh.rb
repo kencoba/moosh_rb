@@ -342,7 +342,7 @@ class Moosh
 		# Only gradeitems with the specified course_id are extracted.
 		gradeitems = gradeitem_list(course_id)
 		if gradeitems.length < 1 then
-			# In some cases, there is no gradeitem in a course, so it is treadted as normal.
+			# In some cases, there is no gradeitem in a course, so it is treated as normal.
 			STDERR.puts "gradeitems is empty. Probably there is no gradeitem in the course #{course_id}."
 			return
 		end
