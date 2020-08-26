@@ -161,7 +161,7 @@ class Moosh
 		if output =~ /^Course ID/ then
 			return output
 		else
-			raise "Course is not exist with course id #{course_id}."
+			raise "The course with course_id #{course_id} does not exist."
 		end
 	end
 
