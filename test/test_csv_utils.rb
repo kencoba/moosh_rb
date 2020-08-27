@@ -27,9 +27,9 @@ class CSVUtilsTest < Test::Unit::TestCase
     row_b_4 = CSV::Row.new(["hd","he","hc"],["7","8","8"])
     table_b = CSV::Table.new([row_b_1,row_b_2,row_b_3,row_b_4])
 	
-	actual = CSVUtils::inner_join(table_a,table_b,"ta","tb","hc")
+    actual = CSVUtils::inner_join(table_a,table_b,"ta","tb","hc")
 	
-	assert_equal(3,actual.size,"the result table should contain the rows which hc = 3(2 rows) and hc = 6 (1 row).")
+    assert_equal(3,actual.size,"the result table should contain the rows which hc = 3(2 rows) and hc = 6 (1 row).")
 	
   end
   
@@ -39,7 +39,7 @@ class CSVUtilsTest < Test::Unit::TestCase
     row_a_3 = CSV::Row.new(["ha","hb","hc"],["7","8","9"])
     table_a = CSV::Table.new([row_a_1,row_a_2,row_a_3])
   
-	actual = CSVUtils::restriction(table_a) {|row| row["hb"].to_i > 4}
+    actual = CSVUtils::restriction(table_a) {|row| row["hb"].to_i > 4}
   
     assert_equal(2,actual.size,"the result rows of the table should contain hb = 5 or hb = 8")
   end
