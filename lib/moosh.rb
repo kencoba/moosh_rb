@@ -16,6 +16,12 @@ class Moosh
 		@command_line_base = "sudo -u www-data #{@moosh_path}/moosh.php -p #{@moodle_path} " 
 	end
 	
+	def execute_command(command_line)
+		puts command_line
+		output, error, status = Open3.capture3(command_line)
+		return output, error, status
+	end
+	
 	def activity_add()
 		raise NotImplementedError.new("You must implement #{self.class}##{__method__}")
 	end
@@ -153,13 +159,11 @@ class Moosh
 		end
 		
 		command_line = "#{@command_line_base} course-info #{course_id}"
-		puts command_line
 
-		# Type of output is string. 
-		output, error, status = Open3.capture3(command_line)
+		output, error, status = execute_command(command_line)
 
 		if output =~ /^Course ID/ then
-			return output
+			return output[output.index(/Course ID/) .. ]
 		else
 			raise "The course with course_id #{course_id} does not exist."
 		end
@@ -373,9 +377,8 @@ class Moosh
 		end
 	
 		command_line = "#{@command_line_base} gradeitem-list"
-		puts command_line
 
-		_stdout, error, status = Open3.capture3(command_line)
+		_stdout, error, status = execute_command(command_line)
 		# Find header row marker in stdout.
 		header_row_index = _stdout.index(/"id",/)
 		
