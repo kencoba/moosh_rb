@@ -164,7 +164,6 @@ class Moosh
 
     if output =~ /^Course ID/ then
       return output
-      # [output.index(/Course ID/) .. ]
     else
       raise "The course with course_id #{course_id} does not exist."
     end
