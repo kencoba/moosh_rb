@@ -163,7 +163,8 @@ class Moosh
     output, error, status = execute_command(command_line)
 
     if output =~ /^Course ID/ then
-      return output[output.index(/Course ID/) .. ]
+      return output
+      # [output.index(/Course ID/) .. ]
     else
       raise "The course with course_id #{course_id} does not exist."
     end
@@ -357,14 +358,9 @@ class Moosh
     command_line = "#{@command_line_base} gradebook-export -g #{group_id} -x #{exportfeedback} -a #{onlyactive} -d #{displaytype} -p #{decimalpoints} -s #{separator} -f #{exportformat} #{gradeitem_ids.join(',')} #{course_id}"
 
     output, error, status = execute_command(command_line)
-    csvstring = output[output.index(/名/) .. ]
-    csvdata = CSV::Table.new([])
-    CSV(csvstring,headers: true).each do |row|
-      csvdata << row
-    end
-    
-    return csvdata
+    return CSV.parse(output,{headers: true})
   end
+
   def gradebook_import()
     raise NotImplementedError.new("You must implement #{self.class}##{__method__}")
   end
@@ -386,23 +382,17 @@ class Moosh
     command_line = "#{@command_line_base} gradeitem-list"
 
     output, error, status = execute_command(command_line)
-    # Find header row marker in stdout.
-    header_row_index = output.index(/"id",/)
-    
-    csvstring = output[header_row_index, output.length-1]
-    csvdata = []
-    CSV(csvstring,headers: true).each do |row|
-      csvdata << row
-    end
+    csvdata = CSV.parse(output, {headers: true})
 
     if course_id.nil? then
       # Return all data if course_id method parameter does not specified.
       return csvdata
     else
       # Extract the data by course_id.
-      csvdata_id = csvdata.select {|x|
-        x["courseid"] == course_id.to_s
-      }
+      csvdata_id = CSV::Table.new(
+        csvdata.select {|x|
+          x["courseid"] == course_id.to_s
+        })
       return csvdata_id
     end
   end

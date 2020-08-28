@@ -22,7 +22,7 @@ module CSVUtils
   end
 
   def restriction(csvtable,&block)
-    return csvtable.filter &block
+    return csvtable.select &block
   end
 
   def row_with_table_name(row, table_name)
