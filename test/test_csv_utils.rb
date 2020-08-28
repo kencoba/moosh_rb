@@ -2,45 +2,49 @@ require "test/unit"
 require "csv"
 require_relative "../lib/csv_utils"
 
-class CSVUtilsTest < Test::Unit::TestCase
-  def test_projection
+class CSVlite3Test < Test::Unit::TestCase
+  def test_new
+    File.delete("test_new.db") if File.exist?("test_new.db")
+    db = CSVlite3.new("test_new.db")
+    
+    assert_false(File.exist?("test_new.db"),"database file must not be exist.")
+  end
+  
+  def test_destory
+    File.delete("test_destroy.db") if File.exist?("test_destroy.db")
+    db = CSVlite3.new("test_destroy.db")
+    
+    db.destroy
+    assert_false(File.exist?("test_destroy.db"),"database file must be deleted.")
+  end
+  
+  def test_create
+    File.delete("test_create.db") if File.exist?("test_create.db")
+    db = CSVlite3.new("test_create.db")
+
     row_a_1 = CSV::Row.new(["ha","hb","hc"],["1","2","3"])
     row_a_2 = CSV::Row.new(["ha","hb","hc"],["4","5","6"])
     table_a = CSV::Table.new([row_a_1,row_a_2])
 
-    actual = CSVUtils::projection(table_a,["ha","hb"])
+    result = db.create("table_a",table_a)
+    
+    assert_true(result,"db#create must be exited properly.")    
+    File.delete("test_create.db") if File.exist?("test_create.db")
+  end
+  
+  def test_query
+    File.delete("test_query.db") if File.exist?("test_query.db")
+    db = CSVlite3.new("test_query.db")
 
-    assert_equal(table_a.size,actual.size,"projection does not affect the number of rows.")
-    assert_equal(table_a[1]["hb"],actual[1]["hb"],"actual data should contain the same data.")
-    assert_nil(actual[1]["hc"],"actual data should contain only projected data.")
-  end
-  
-  def test_inner_join
     row_a_1 = CSV::Row.new(["ha","hb","hc"],["1","2","3"])
     row_a_2 = CSV::Row.new(["ha","hb","hc"],["4","5","6"])
-    row_a_3 = CSV::Row.new(["ha","hb","hc"],["7","8","9"])
-    table_a = CSV::Table.new([row_a_1,row_a_2,row_a_3])
-	
-    row_b_1 = CSV::Row.new(["hd","he","hc"],["1","2","3"])
-    row_b_2 = CSV::Row.new(["hd","he","hc"],["4","5","3"])
-    row_b_3 = CSV::Row.new(["hd","he","hc"],["4","5","6"])
-    row_b_4 = CSV::Row.new(["hd","he","hc"],["7","8","8"])
-    table_b = CSV::Table.new([row_b_1,row_b_2,row_b_3,row_b_4])
-	
-    actual = CSVUtils::inner_join(table_a,table_b,"ta","tb","hc")
-	
-    assert_equal(3,actual.size,"the result table should contain the rows which hc = 3(2 rows) and hc = 6 (1 row).")
-	
-  end
-  
-  def test_restriction
-    row_a_1 = CSV::Row.new(["ha","hb","hc"],["1","2","3"])
-    row_a_2 = CSV::Row.new(["ha","hb","hc"],["4","5","6"])
-    row_a_3 = CSV::Row.new(["ha","hb","hc"],["7","8","9"])
-    table_a = CSV::Table.new([row_a_1,row_a_2,row_a_3])
-  
-    actual = CSVUtils::restriction(table_a) {|row| row["hb"].to_i > 4}
-  
-    assert_equal(2,actual.size,"the result rows of the table should contain hb = 5 or hb = 8")
+    table_a = CSV::Table.new([row_a_1,row_a_2])
+
+    db.create("table_a",table_a)
+    
+    actual = db.query("select * from table_a")
+    assert_true(actual.is_a?(CSV::Table),"The type of the return value must be CSV::Table.")
+    assert_equal(2,actual.size,"The all record must be extracted.")
+    File.delete("test_query.db") if File.exist?("test_query.db")
   end
 end
